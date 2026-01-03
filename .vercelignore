@@ -1,0 +1,11 @@
+# Ignorar todo excepto lo necesario para el backend
+*
+!api/
+!index.js
+!server.js
+!package.json
+!package-lock.json
+!vercel.json
+!sendEmail.js
+!sendSMS.js
+

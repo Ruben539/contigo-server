@@ -1,0 +1,24 @@
+# Configuración del backend de Contigo
+# Renombrar este archivo a .env
+
+# SendGrid API Key (obtener en https://app.sendgrid.com/settings/api_keys)
+SENDGRID_API_KEY=SG.xxxxxxxxxxxxxxxxxxxxxxxx
+
+# Email verificado en SendGrid (debe estar verificado)
+SENDGRID_FROM_EMAIL=notificaciones@tuapp.com
+
+# Email para respuestas (opcional, por defecto usa FROM_EMAIL)
+REPLY_TO_EMAIL=soporte@tuapp.com
+
+# Twilio (para SMS/WhatsApp)
+# Obtener en https://console.twilio.com/
+TWILIO_ACCOUNT_SID=ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+TWILIO_AUTH_TOKEN=tu_auth_token_aqui
+TWILIO_MESSAGING_SERVICE_SID=MGxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+# Puerto del servidor
+PORT=3000
+
+# URL de la app (para CORS si es necesario)
+APP_URL=http://localhost:8081
+
