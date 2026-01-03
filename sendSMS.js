@@ -13,7 +13,7 @@ dotenv.config();
  * @param {Object} usuario - { nombre }
  * @param {string} tipo - 'bienvenida' | 'alerta' (opcional, por defecto 'alerta')
  */
-export async function sendSMS(contacto, usuario, tipo = 'alerta') {
+export async function sendSMS(contacto, usuario, tipo = 'persistent_mood') {
   const {
     TWILIO_ACCOUNT_SID,
     TWILIO_AUTH_TOKEN,
@@ -89,9 +89,55 @@ export async function sendSMS(contacto, usuario, tipo = 'alerta') {
     console.log(`📱 Formateando teléfono: ${contacto.telefono} → ${formattedPhone}`);
 
     // Mensaje según el tipo
-    const body = tipo === 'bienvenida'
-      ? `Hola${contacto.nombre ? ` ${contacto.nombre}` : ''}, ${usuario.nombre} te agregó como persona de apoyo en Contigo. Recibirás avisos cuando necesite acompañamiento. — Contigo App`
-      : `Hola${contacto.nombre ? ` ${contacto.nombre}` : ''}, ${usuario.nombre} indicó que necesita apoyo emocional en este momento. Sería bueno que puedas estar disponible. — Contigo`;
+    let body;
+    
+    if (tipo === 'bienvenida') {
+      body = `Hola${contacto.nombre ? ` ${contacto.nombre}` : ''}, ${usuario.nombre} te agregó como persona de apoyo en Contigo, una app de bienestar emocional.
+
+📋 Recibirás avisos cuando ${usuario.nombre} necesite acompañamiento. Estos avisos son generales y respetuosos de la privacidad.
+
+💡 Cómo acompañar:
+- Escuchar más que hablar
+- Evitar consejos rápidos
+- Preguntar "¿cómo puedo acompañarte?"
+
+🔒 Privacidad: Contigo nunca comparte textos, conversaciones ni detalles personales. Solo señales generales, siempre con consentimiento.
+
+— Contigo App`;
+    } else {
+      // Determinar el tipo de alerta desde el parámetro tipo
+      // tipo puede ser: 'persistent_mood' | 'user_request' | 'alerta' (legacy)
+      const alertType = tipo === 'user_request' ? 'user_request' : 'persistent_mood';
+      
+      if (alertType === 'user_request') {
+        body = `Hola${contacto.nombre ? ` ${contacto.nombre}` : ''}, ${usuario.nombre} indicó que necesita apoyo emocional en este momento.
+
+Sería bueno que puedas estar disponible.
+
+💡 Cómo acompañar:
+- Escuchar más que hablar
+- Evitar consejos rápidos
+- Preguntar "¿cómo puedo acompañarte?"
+
+🔒 Privacidad: Contigo nunca comparte textos ni detalles personales. Solo señales generales, con consentimiento.
+
+— Contigo App`;
+      } else {
+        // persistent_mood
+        body = `Hola${contacto.nombre ? ` ${contacto.nombre}` : ''}, queríamos avisarte que ${usuario.nombre} ha estado atravesando días emocionalmente difíciles.
+
+No es una emergencia, pero tal vez una charla tranquila podría ayudar.
+
+💡 Cómo acompañar:
+- Escuchar más que hablar
+- Evitar consejos rápidos
+- Preguntar "¿cómo puedo acompañarte?"
+
+🔒 Privacidad: Contigo nunca comparte textos ni detalles personales. Solo señales generales, con consentimiento.
+
+— Contigo App`;
+      }
+    }
 
     const response = await fetch(url, {
       method: 'POST',

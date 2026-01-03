@@ -73,12 +73,13 @@ app.post('/api/avisar-contacto', async (req, res) => {
       }
     }
 
-    // Enviar SMS (solo en user_request y si está habilitado)
-    if (type === 'user_request' && contacto.notify_sms && contacto.telefono) {
+    // Enviar SMS (en user_request y persistent_mood si está habilitado)
+    if ((type === 'user_request' || type === 'persistent_mood') && contacto.notify_sms && contacto.telefono) {
       try {
         // Importar sendSMS dinámicamente
         const { sendSMS } = await import('./sendSMS.js');
-        const smsResult = await sendSMS(contacto, usuario);
+        // Pasar el tipo de alerta al SMS
+        const smsResult = await sendSMS(contacto, usuario, type);
         results.sms = smsResult;
         
         if (smsResult.success) {
