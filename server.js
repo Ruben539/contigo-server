@@ -202,6 +202,8 @@ app.post('/api/bienvenida-contacto', async (req, res) => {
     console.log(`📧 Enviando email de bienvenida:`);
     console.log(`   Usuario: ${usuario.nombre}`);
     console.log(`   Contacto: ${contacto.nombre || 'Sin nombre'} (${contacto.email})`);
+    console.log(`   Teléfono: ${contacto.telefono || 'NO PROPORCIONADO'}`);
+    console.log(`   Datos completos del contacto:`, JSON.stringify(contacto, null, 2));
 
     const results = { email: null, sms: null };
 
@@ -227,23 +229,28 @@ app.post('/api/bienvenida-contacto', async (req, res) => {
     }
 
     // Enviar SMS de bienvenida si hay teléfono
-    if (contacto.telefono) {
+    // Para la bienvenida, enviamos SMS siempre que haya teléfono (es un mensaje único)
+    if (contacto.telefono && contacto.telefono.trim() !== '') {
       try {
+        console.log(`📱 Intentando enviar SMS de bienvenida a: ${contacto.telefono}`);
         const { sendSMS } = await import('./sendSMS.js');
         const smsResult = await sendSMS(contacto, usuario, 'bienvenida');
         results.sms = smsResult;
         
         if (smsResult.success) {
-          console.log(`✅ SMS de bienvenida enviado a ${contacto.telefono}`);
+          console.log(`✅ SMS de bienvenida enviado exitosamente a ${contacto.telefono}`);
         } else {
           console.error(`❌ Error enviando SMS de bienvenida: ${smsResult.error}`);
+          console.error(`   Detalles completos:`, smsResult);
         }
       } catch (smsError) {
         console.error('❌ Error enviando SMS de bienvenida:', smsError);
-        results.sms = { success: false, error: smsError.message };
+        console.error('   Stack trace:', smsError.stack);
+        results.sms = { success: false, error: smsError.message || 'Error desconocido' };
       }
     } else {
-      console.log('ℹ️ No hay teléfono para enviar SMS de bienvenida');
+      console.log(`ℹ️ No se envía SMS de bienvenida: teléfono=${contacto.telefono || 'undefined'}`);
+      console.log(`   Verifica que el teléfono se esté enviando desde el frontend`);
     }
 
     // Responder con éxito si al menos uno funcionó
