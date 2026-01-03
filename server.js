@@ -73,9 +73,20 @@ app.post('/api/avisar-contacto', async (req, res) => {
       }
     }
 
-    // Enviar SMS (en user_request y persistent_mood si está habilitado)
-    if ((type === 'user_request' || type === 'persistent_mood') && contacto.notify_sms && contacto.telefono) {
+    // Enviar SMS según nivel de notificación
+    // Reglas éticas:
+    // - Nivel 1 (info): NO SMS (solo email)
+    // - Nivel 2 (persistent_mood): SMS si está habilitado Y hay teléfono
+    // - Nivel 3 (user_request): SMS siempre (urgente)
+    const shouldSendSMS = 
+      (type === 'user_request' || type === 'persistent_mood') && 
+      contacto.telefono && 
+      contacto.telefono.trim() !== '' &&
+      (type === 'user_request' || contacto.notify_sms); // En user_request siempre, en persistent_mood solo si está habilitado
+    
+    if (shouldSendSMS) {
       try {
+        console.log(`📱 Enviando SMS (tipo: ${type}) a ${contacto.telefono}...`);
         // Importar sendSMS dinámicamente
         const { sendSMS } = await import('./sendSMS.js');
         // Pasar el tipo de alerta al SMS
@@ -83,14 +94,16 @@ app.post('/api/avisar-contacto', async (req, res) => {
         results.sms = smsResult;
         
         if (smsResult.success) {
-          console.log(`✅ [LOG] SMS enviado a ${contacto.telefono}`);
+          console.log(`✅ [LOG] SMS enviado a ${contacto.telefono} (SID: ${smsResult.sid || 'N/A'})`);
         } else {
           console.error(`❌ [ERROR] Fallo envío SMS: ${smsResult.error}`);
         }
       } catch (smsError) {
         console.error('❌ Error enviando SMS:', smsError);
-        results.sms = { success: false, error: smsError.message };
+        results.sms = { success: false, error: smsError.message || 'Error desconocido' };
       }
+    } else {
+      console.log(`ℹ️ No se envía SMS: tipo=${type}, tieneTelefono=${!!contacto.telefono}, notify_sms=${contacto.notify_sms}`);
     }
 
     // Responder

@@ -103,67 +103,34 @@ export async function sendSMS(contacto, usuario, tipo = 'persistent_mood') {
     const formattedPhone = formatPhoneNumber(contacto.telefono);
     console.log(`📱 Formateando teléfono: ${contacto.telefono} → ${formattedPhone}`);
 
-    // Mensaje según el tipo
+    // Mensajes éticos según nivel (optimizados para SMS - máximo 160 caracteres recomendado)
+    // Respetando los 3 niveles: 'bienvenida' | 'persistent_mood' | 'user_request'
     let body;
     
-    if (tipo === 'bienvenida') {
-      body = `Hola${contacto.nombre ? ` ${contacto.nombre}` : ''}, ${usuario.nombre} te agregó como persona de apoyo en Contigo, una app de bienestar emocional.
+    switch (tipo) {
+      case 'bienvenida':
+        // Nivel 1: Informativo (bienvenida)
+        body = `Hola${contacto.nombre ? ` ${contacto.nombre}` : ''}, ${usuario.nombre} te agregó como contacto de apoyo en la app Contigo. No necesitás hacer nada ahora.`;
+        break;
 
-📋 Recibirás avisos cuando ${usuario.nombre} necesite acompañamiento. Estos avisos son generales y respetuosos de la privacidad.
+      case 'persistent_mood':
+        // Nivel 2: Mood persistente (con consentimiento explícito)
+        body = `Hola${contacto.nombre ? ` ${contacto.nombre}` : ''}, ${usuario.nombre} ha estado atravesando días emocionalmente difíciles y aceptó que se te avise.`;
+        break;
 
-📬 Cuándo recibirás avisos:
-- Cuando ${usuario.nombre} lo solicite explícitamente
-- Si detectamos un patrón de malestar emocional persistente (con su consentimiento)
+      case 'user_request':
+        // Nivel 3: Solicitud explícita (urgente)
+        body = `Hola${contacto.nombre ? ` ${contacto.nombre}` : ''}, ${usuario.nombre} solicitó apoyo y aceptó que se te avise. Si podés, contactalo.`;
+        break;
 
-💡 Cómo acompañar:
-- Escuchar más que hablar
-- Evitar consejos rápidos
-- Preguntar "¿cómo puedo acompañarte?"
+      case 'info':
+        // Nivel 1: Informativo (una sola vez)
+        body = `Hola${contacto.nombre ? ` ${contacto.nombre}` : ''}, ${usuario.nombre} está usando Contigo y eligió que seas contacto de apoyo. No requiere acción.`;
+        break;
 
-🔒 Privacidad: Contigo nunca comparte textos, audios ni detalles personales. Solo señales generales, siempre con consentimiento.
-
-Este mensaje no reemplaza atención profesional.
-
-— Contigo App`;
-    } else {
-      // Determinar el tipo de alerta desde el parámetro tipo
-      // tipo puede ser: 'persistent_mood' | 'user_request' | 'alerta' (legacy)
-      const alertType = tipo === 'user_request' ? 'user_request' : 'persistent_mood';
-      
-      if (alertType === 'user_request') {
-        body = `Hola${contacto.nombre ? ` ${contacto.nombre}` : ''}, ${usuario.nombre} indicó que necesita apoyo emocional en este momento.
-
-Sería bueno que puedas estar disponible.
-
-💡 Cómo acompañar:
-- Escuchar más que hablar
-- Evitar consejos rápidos
-- Preguntar "¿cómo puedo acompañarte?"
-
-🔒 Privacidad: Contigo nunca comparte textos, audios ni detalles personales. Solo señales generales, con consentimiento.
-
-Este mensaje no reemplaza atención profesional.
-
-— Contigo App`;
-      } else {
-        // persistent_mood
-        body = `Hola${contacto.nombre ? ` ${contacto.nombre}` : ''}, Contigo te escribe porque ${usuario.nombre} eligió que seas una persona de apoyo.
-
-En los últimos días ha estado atravesando momentos emocionalmente difíciles. No es una emergencia ni requiere una acción específica.
-
-Tal vez una charla tranquila, a su ritmo, pueda ayudar.
-
-💡 Cómo acompañar:
-- Escuchar más que hablar
-- Evitar consejos rápidos
-- Preguntar "¿cómo puedo acompañarte?"
-
-🔒 Privacidad: Contigo nunca comparte textos, audios ni detalles personales. Solo señales generales, con consentimiento.
-
-Este mensaje no reemplaza atención profesional.
-
-— Contigo App`;
-      }
+      default:
+        // Fallback
+        body = `${usuario.nombre} te envió un aviso desde Contigo.`;
     }
 
     const response = await fetch(url, {
