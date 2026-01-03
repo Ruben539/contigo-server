@@ -21,14 +21,29 @@ export async function sendSMS(contacto, usuario, tipo = 'persistent_mood') {
   } = process.env;
 
   // Validación
+  console.log(`📱 sendSMS - Validando datos:`, {
+    tieneTelefono: !!contacto?.telefono,
+    telefono: contacto?.telefono || 'NO PROPORCIONADO',
+    tieneNombre: !!usuario?.nombre,
+    nombre: usuario?.nombre || 'NO PROPORCIONADO',
+    tipo: tipo,
+  });
+
   if (!contacto?.telefono || !usuario?.nombre) {
-    throw new Error('Faltan datos obligatorios: telefono o nombre');
+    const errorMsg = `Faltan datos obligatorios: telefono=${!!contacto?.telefono}, nombre=${!!usuario?.nombre}`;
+    console.error(`❌ ${errorMsg}`);
+    throw new Error(errorMsg);
   }
 
   if (!TWILIO_ACCOUNT_SID || !TWILIO_AUTH_TOKEN || !TWILIO_MESSAGING_SERVICE_SID) {
+    console.error(`❌ Twilio no configurado:`, {
+      tieneAccountSid: !!TWILIO_ACCOUNT_SID,
+      tieneAuthToken: !!TWILIO_AUTH_TOKEN,
+      tieneMessagingServiceSid: !!TWILIO_MESSAGING_SERVICE_SID,
+    });
     return {
       success: false,
-      error: 'Twilio no configurado (variables de entorno faltantes)',
+      error: 'Twilio no configurado (variables de entorno faltantes). Verifica TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN y TWILIO_MESSAGING_SERVICE_SID en Vercel.',
     };
   }
 
