@@ -96,12 +96,18 @@ export async function sendSMS(contacto, usuario, tipo = 'persistent_mood') {
 
 📋 Recibirás avisos cuando ${usuario.nombre} necesite acompañamiento. Estos avisos son generales y respetuosos de la privacidad.
 
+📬 Cuándo recibirás avisos:
+- Cuando ${usuario.nombre} lo solicite explícitamente
+- Si detectamos un patrón de malestar emocional persistente (con su consentimiento)
+
 💡 Cómo acompañar:
 - Escuchar más que hablar
 - Evitar consejos rápidos
 - Preguntar "¿cómo puedo acompañarte?"
 
-🔒 Privacidad: Contigo nunca comparte textos, conversaciones ni detalles personales. Solo señales generales, siempre con consentimiento.
+🔒 Privacidad: Contigo nunca comparte textos, audios ni detalles personales. Solo señales generales, siempre con consentimiento.
+
+Este mensaje no reemplaza atención profesional.
 
 — Contigo App`;
     } else {
@@ -119,21 +125,27 @@ Sería bueno que puedas estar disponible.
 - Evitar consejos rápidos
 - Preguntar "¿cómo puedo acompañarte?"
 
-🔒 Privacidad: Contigo nunca comparte textos ni detalles personales. Solo señales generales, con consentimiento.
+🔒 Privacidad: Contigo nunca comparte textos, audios ni detalles personales. Solo señales generales, con consentimiento.
+
+Este mensaje no reemplaza atención profesional.
 
 — Contigo App`;
       } else {
         // persistent_mood
-        body = `Hola${contacto.nombre ? ` ${contacto.nombre}` : ''}, queríamos avisarte que ${usuario.nombre} ha estado atravesando días emocionalmente difíciles.
+        body = `Hola${contacto.nombre ? ` ${contacto.nombre}` : ''}, Contigo te escribe porque ${usuario.nombre} eligió que seas una persona de apoyo.
 
-No es una emergencia, pero tal vez una charla tranquila podría ayudar.
+En los últimos días ha estado atravesando momentos emocionalmente difíciles. No es una emergencia ni requiere una acción específica.
+
+Tal vez una charla tranquila, a su ritmo, pueda ayudar.
 
 💡 Cómo acompañar:
 - Escuchar más que hablar
 - Evitar consejos rápidos
 - Preguntar "¿cómo puedo acompañarte?"
 
-🔒 Privacidad: Contigo nunca comparte textos ni detalles personales. Solo señales generales, con consentimiento.
+🔒 Privacidad: Contigo nunca comparte textos, audios ni detalles personales. Solo señales generales, con consentimiento.
+
+Este mensaje no reemplaza atención profesional.
 
 — Contigo App`;
       }
