@@ -167,13 +167,31 @@ app.post('/avisar-contacto', async (req, res) => {
 });
 
 // ═══════════════════════════════════════════════════════
-// ENDPOINT: Test
+// ENDPOINTS: Test y raíz
 // ═══════════════════════════════════════════════════════
+
+app.get('/', (req, res) => {
+  res.json({
+    success: true,
+    name: 'Contigo Backend',
+    version: '1.0.0',
+    endpoints: [
+      'POST /api/avisar-contacto',
+      'POST /api/bienvenida-contacto',
+      'POST /api/enviar-informe-tutor',
+      'GET  /api/test',
+      'GET  /health',
+    ],
+    timestamp: new Date().toISOString(),
+  });
+});
 
 app.get('/api/test', (req, res) => {
   res.json({
     success: true,
     message: 'Backend de Contigo funcionando',
+    sendgrid: !!process.env.SENDGRID_API_KEY,
+    twilio: !!process.env.TWILIO_ACCOUNT_SID,
     timestamp: new Date().toISOString(),
   });
 });
