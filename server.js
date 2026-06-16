@@ -292,6 +292,58 @@ app.post('/api/bienvenida-contacto', async (req, res) => {
 });
 
 // ═══════════════════════════════════════════════════════
+// ENDPOINT: Enviar informe PDF al tutor
+// ═══════════════════════════════════════════════════════
+
+app.post('/api/enviar-informe-tutor', async (req, res) => {
+  try {
+    const { contacto, usuario, pdf_base64 } = req.body;
+
+    if (!usuario?.nombre) {
+      return res.status(400).json({ success: false, error: 'Falta usuario.nombre' });
+    }
+    if (!contacto?.email) {
+      return res.status(400).json({ success: false, error: 'Falta contacto.email' });
+    }
+    if (!pdf_base64) {
+      return res.status(400).json({ success: false, error: 'Falta pdf_base64' });
+    }
+
+    const apiKey = process.env.SENDGRID_API_KEY;
+    const fromEmail = process.env.FROM_EMAIL || process.env.SENDGRID_FROM_EMAIL;
+
+    if (!apiKey || !fromEmail) {
+      return res.status(500).json({ success: false, error: 'SendGrid no configurado (env)' });
+    }
+
+    const sgMail = (await import('@sendgrid/mail')).default;
+    sgMail.setApiKey(apiKey);
+
+    await sgMail.send({
+      to: contacto.email,
+      from: { email: fromEmail, name: 'Contigo App' },
+      subject: `Informe de seguimiento de ${usuario.nombre}`,
+      text: `Hola${contacto.nombre ? ` ${contacto.nombre}` : ''},\n\nAdjunto encontrás el informe de seguimiento de bienestar de ${usuario.nombre}, generado desde la app Contigo.\n\n— Contigo · Asistente de bienestar`,
+      attachments: [
+        {
+          content: pdf_base64,
+          filename: `informe-${usuario.nombre.replace(/\s+/g, '-')}.pdf`,
+          type: 'application/pdf',
+          disposition: 'attachment',
+        },
+      ],
+    });
+
+    console.log(`[LOG] Informe PDF enviado a ${contacto.email} para usuario ${usuario.nombre}`);
+
+    return res.json({ success: true, timestamp: new Date().toISOString() });
+  } catch (error) {
+    console.error('❌ Error enviando informe tutor:', error);
+    return res.status(500).json({ success: false, error: error.message || 'Error interno' });
+  }
+});
+
+// ═══════════════════════════════════════════════════════
 // INICIAR SERVIDOR (solo en desarrollo local)
 // ═══════════════════════════════════════════════════════
 
@@ -309,6 +361,7 @@ if (process.env.VERCEL !== '1') {
     console.log('📋 Endpoints disponibles:');
     console.log('   POST /api/avisar-contacto');
     console.log('   POST /api/bienvenida-contacto');
+    console.log('   POST /api/enviar-informe-tutor');
     console.log('   POST /avisar-contacto');
     console.log('   GET  /api/test');
     console.log('   GET  /health');
