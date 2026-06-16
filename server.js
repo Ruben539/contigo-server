@@ -310,6 +310,50 @@ app.post('/api/bienvenida-contacto', async (req, res) => {
 });
 
 // ═══════════════════════════════════════════════════════
+// ENDPOINT: Proxy de Gemini (la API key vive solo en el servidor)
+// ═══════════════════════════════════════════════════════
+
+app.post('/api/gemini', async (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    return res.status(500).json({ error: 'GEMINI_API_KEY no configurada en el servidor' });
+  }
+
+  try {
+    const { model = 'gemini-flash-latest', systemInstruction, contents, generationConfig, safetySettings } = req.body || {};
+
+    if (!contents || !Array.isArray(contents)) {
+      return res.status(400).json({ error: 'Falta contents (array requerido)' });
+    }
+
+    const body = { contents };
+    if (systemInstruction) body.systemInstruction = systemInstruction;
+    if (generationConfig) body.generationConfig = generationConfig;
+    if (safetySettings) body.safetySettings = safetySettings;
+
+    const geminiRes = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+      { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }
+    );
+
+    const data = await geminiRes.json();
+
+    if (!geminiRes.ok) {
+      console.error('[Gemini proxy] Error:', data);
+      return res.status(geminiRes.status).json({ error: data?.error?.message || 'Error de Gemini' });
+    }
+
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() ?? '';
+    return res.json({ text, raw: data });
+  } catch (error) {
+    console.error('[Gemini proxy] Error interno:', error);
+    return res.status(500).json({ error: error.message || 'Error interno' });
+  }
+});
+
+// ═══════════════════════════════════════════════════════
 // ENDPOINT: Enviar informe PDF al tutor
 // ═══════════════════════════════════════════════════════
 
